@@ -67,6 +67,47 @@ const enum VisibilityType {
 	External,
 }
 
+
+class StringIdGenerator {
+  protected _chars: string;
+  protected _nextId: any;
+
+  constructor(chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ') {
+    this._chars = chars;
+    this._nextId = [0];
+  }
+
+  next() {
+    const r = [];
+    for (const char of this._nextId) {
+      r.unshift(this._chars[char]);
+    }
+    this._increment();
+    return r.join('');
+  }
+
+  _increment() {
+    for (let i = 0; i < this._nextId.length; i++) {
+      const val = ++this._nextId[i];
+      if (val >= this._chars.length) {
+        this._nextId[i] = 0;
+      } else {
+        return;
+      }
+    }
+    this._nextId.push(0);
+  }
+
+  *[Symbol.iterator]() {
+    while (true) {
+      yield this.next();
+    }
+  }
+}
+
+const mangleGen = new StringIdGenerator();
+
+
 // eslint-disable-next-line import/no-default-export
 export default function propertiesRenameTransformer(program: ts.Program, config?: Partial<RenameOptions>): ts.TransformerFactory<ts.SourceFile> {
 	return createTransformerFactory(program, config);
@@ -78,6 +119,7 @@ function createTransformerFactory(program: ts.Program, options?: Partial<RenameO
 	const exportsSymbolTree = new ExportsSymbolTree(program, fullOptions.entrySourceFiles);
 
 	const cache = new Map<ts.Symbol, VisibilityType>();
+        const mangledNames = new Map<string, string>;
 
 	function putToCache(nodeSymbol: ts.Symbol, val: VisibilityType): VisibilityType {
 		cache.set(nodeSymbol, val);
@@ -272,8 +314,21 @@ function createTransformerFactory(program: ts.Program, options?: Partial<RenameO
 			return createNode(newPropertyName);
 		}
 
+		function getNewMangledName(): string {
+                        return mangleGen.next();
+                }
+
 		function getNewName(originalName: string, type: VisibilityType): string {
-			return `${type === VisibilityType.Private ? fullOptions.privatePrefix : fullOptions.internalPrefix}${originalName}`;
+                        let mangled = mangledNames.get(originalName);
+                        if (mangled != undefined) {
+                          return mangled;
+                        }
+                        mangled = getNewMangledName();
+                        if (!originalName.startsWith('_')) {
+                          // just to warn about
+                          mangled = "x_" + mangled;
+                        }
+			return `${type === VisibilityType.Private ? fullOptions.privatePrefix : fullOptions.internalPrefix}${mangled}`;
 		}
 
 		function getActualSymbol(symbol: ts.Symbol): ts.Symbol {
