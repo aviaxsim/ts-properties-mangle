@@ -128,6 +128,14 @@ export function hasPrivateKeyword(node: ClassMember | ts.ParameterDeclaration): 
 	return hasModifier(node, ts.SyntaxKind.PrivateKeyword);
 }
 
+export function hasProtectedKeyword(node: ClassMember | ts.ParameterDeclaration): boolean {
+	return hasModifier(node, ts.SyntaxKind.ProtectedKeyword);
+}
+
+export function hasPublicKeyword(node: ClassMember | ts.ParameterDeclaration): boolean {
+	return hasModifier(node, ts.SyntaxKind.PublicKeyword);
+}
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 function getModifiers(node: ts.Node): readonly NonNullable<ts.Node['modifiers']>[number][] {
@@ -199,6 +207,14 @@ export function isSymbolClassMember(symbol: ts.Symbol | undefined): boolean {
 
 export function isPrivateClassMember(symbol: ts.Symbol | undefined): boolean {
 	return getClassMemberDeclarations(symbol).some(hasPrivateKeyword);
+}
+
+export function isProtectedClassMember(symbol: ts.Symbol | undefined): boolean {
+	return getClassMemberDeclarations(symbol).some(hasProtectedKeyword);
+}
+
+export function isPublicClassMember(symbol: ts.Symbol | undefined): boolean {
+	return getClassMemberDeclarations(symbol).some(hasPublicKeyword);
 }
 
 export function getNodeJSDocComment(node: ts.Node): string {
