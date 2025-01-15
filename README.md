@@ -1,5 +1,8 @@
 # ts-transformer-properties-rename
 
+# Not finished! Archived. In favour of tsMangle.
+
+
 [![GH Actions][ci-img]][ci-link]
 [![npm version][npm-version-img]][npm-link]
 [![Downloads][npm-downloads-img]][npm-link]
